@@ -2,58 +2,51 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+  <script src="./Blur.js"></script>
+  <style>
+    .container {
+      width: 1280px;
+      margin: auto;
+    }
+    video {
+      transform: scaleX(-1);
+    }
+  </style>
 </head>
 
 <body>
   <div class="container">
-    <video class="input_video"></video>
-    <canvas class="output_canvas" width="640px" height="480px"></canvas>
+    <div>
+      <button id="toggle">Toggle Blur</button>
+      <input type="range" id="blurAmount" min="5" max="20" value="10" />
+      <label form="blurAmount">Blur Amount</label>
+    </div>
+    <video id="videoOutput" autoplay></video>
   </div>
 </body>
 
 <script type="module">
-  const videoElement = document.getElementsByClassName('input_video')[0];
-  const canvasElement = document.getElementsByClassName('output_canvas')[0];
-  const canvasCtx = canvasElement.getContext('2d');
-
-  function onResults(results) {
-    // Save the context's blank state
-    canvasCtx.save();
-
-    // Draw the raw frame
-    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-    // Make all pixels not in the segmentation mask transparent
-    canvasCtx.globalCompositeOperation = 'destination-atop';
-    canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
-
-    // Blur the context for all subsequent draws then set the raw image as the background
-    canvasCtx.filter = 'blur(16px)';
-    canvasCtx.globalCompositeOperation = 'destination-over';
-    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-    // Restore the context's blank state
-    canvasCtx.restore();
-  }
-
-  const selfieSegmentation = new SelfieSegmentation({locateFile: (file) => {
-    return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
-  }});
-  selfieSegmentation.setOptions({
-    modelSelection: 1,
-  });
-  selfieSegmentation.onResults(onResults);
-
-  const camera = new Camera(videoElement, {
-    onFrame: async () => {
-      await selfieSegmentation.send({image: videoElement});
+  const WIDTH = 1280;
+  const HEIGHT = 720;
+  const toggleButton = document.getElementById('toggle');
+  const blurSlider = document.getElementById('blurAmount');
+  const videoOutput = document.getElementById('videoOutput');
+  const constraints = {
+    video: {
+      width: WIDTH,
+      height: HEIGHT,
+      frameRate: 24,
     },
-    width: 640,
-    height: 480
-  });
-  camera.start();
-  </script>
+  };
 
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+  const blur = new Blur(stream, WIDTH, HEIGHT, 30);
+  videoOutput.srcObject = blur.getOutputStream();
+
+  toggleButton.addEventListener('click', blur.toggleBlur);
+  blurSlider.addEventListener('input', (event) => {
+    blur.setBlurAmount(event.target.value);
+  });
+  </script>
 </html>
