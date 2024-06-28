@@ -15,13 +15,13 @@
  * This means that when blur is disabled, this file completely stops segmenting and drawing to the canvas.
  * It also means that users of this file can consume a single MediaStream they can publish.
  */
-function Blur (mediaStream, width, height, frameRate) {
+function Blur (mediaStream, width, height, frameRate, canvasElement) {
   let shouldBlur = true;
   let blurAmount = 10;
   let intervalId;
-  const canvasElement = document.createElement('canvas');
-  canvasElement.width = width;
-  canvasElement.height = height;
+  // const canvasElement = document.createElement('canvas');
+  // canvasElement.width = width;
+  // canvasElement.height = height;
   const canvasCtx = canvasElement.getContext('2d');
   const selfieSegmentation = new SelfieSegmentation({locateFile: (file) => {
     return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;

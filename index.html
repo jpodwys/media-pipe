@@ -23,6 +23,7 @@
       <label form="blurAmount">Blur Amount</label>
     </div>
     <video id="videoOutput" autoplay></video>
+    <canvas id="canvasOutput" autoplay></canvas>
   </div>
 </body>
 
@@ -32,6 +33,7 @@
   const toggleButton = document.getElementById('toggle');
   const blurSlider = document.getElementById('blurAmount');
   const videoOutput = document.getElementById('videoOutput');
+  const canvasOutput = document.getElementById('canvasOutput');
   const constraints = {
     video: {
       width: WIDTH,
@@ -41,8 +43,8 @@
   };
 
   const stream = await navigator.mediaDevices.getUserMedia(constraints);
-  const blur = new Blur(stream, WIDTH, HEIGHT, 30);
-  videoOutput.srcObject = blur.getOutputStream();
+  const blur = new Blur(stream, WIDTH, HEIGHT, 30, canvasOutput);
+  // videoOutput.srcObject = blur.getOutputStream();
 
   toggleButton.addEventListener('click', blur.toggleBlur);
   blurSlider.addEventListener('input', (event) => {
