@@ -101,14 +101,14 @@ function Blur (mediaStream, width, height, frameRate) {
       return;
     }
     if (frameCount === 2 && lastMask && throttleSegmentation) {
-      frameCount = 1;
-      // skipTimer = performance.now();
+      frameCount = 0;
+      skipTimer = Date.now();
       offscreenCtx.drawImage(videoElement, 0, 0);
       const image = await createImageBitmap(offscreenCanvas);
       render({ image, segmentationMask: lastMask, skip: true });
     } else {
       frameCount = 2;
-      // segmentTimer = performance.now();
+      segmentTimer = Date.now();
       await selfieSegmentation.send({ image: videoElement });
     }
     if (supportsFrameCallback) {
@@ -122,13 +122,19 @@ function Blur (mediaStream, width, height, frameRate) {
     if (!startTime) {
       startTime = Date.now();
       setInterval(() => {
-        const now = Date.now();
-        const elapsed = (now - startTime) / 1000;
-        fpsDisplay.innerText = `FPS: ${totalFrames / elapsed}`;
+        if (totalFrames) {
+          const now = Date.now();
+          const elapsed = (now - startTime) / 1000;
+          fpsDisplay.innerText = `FPS: ${totalFrames / elapsed}`;
+        }
       }, 500);
+      setInterval(() => {
+        totalFrames = 1;
+        startTime = Date.now();
+      }, 4000);
     }
     totalFrames++;
-    // const now = performance.now();
+    // const now = Date.now();
     // if (results.skip) {
     //   console.log('skip frame time', now - skipTimer);
     // } else {
