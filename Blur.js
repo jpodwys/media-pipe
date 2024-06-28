@@ -40,7 +40,9 @@ function Blur (mediaStream, width, height, frameRate) {
       width: 1px;
       height: 1px;
       position: absolute;
-      left: -1000;
+      bottom: 5px;
+      left: 5px;
+      opacity: .1;
     `
   );
   videoElement.addEventListener('play', blur);
