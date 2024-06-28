@@ -15,11 +15,11 @@
  * This means that when blur is disabled, this file completely stops segmenting and drawing to the canvas.
  * It also means that users of this file can consume a single MediaStream they can publish.
  */
-function Blur (mediaStream, width, height, frameRate, canvasElement) {
+function Blur (mediaStream, width, height, frameRate) {
   let shouldBlur = true;
   let blurAmount = 10;
   let intervalId;
-  // const canvasElement = document.createElement('canvas');
+  const canvasElement = document.createElement('canvas');
   canvasElement.width = width;
   canvasElement.height = height;
   const canvasCtx = canvasElement.getContext('2d');
@@ -31,8 +31,8 @@ function Blur (mediaStream, width, height, frameRate, canvasElement) {
   });
   selfieSegmentation.onResults(render);
   const [ inputTrack ] = mediaStream.getVideoTracks();
-  // const outputStream = canvasElement.captureStream(frameRate);
-  // const [ outputTrack ] = outputStream.getVideoTracks()
+  const outputStream = canvasElement.captureStream(frameRate);
+  const [ outputTrack ] = outputStream.getVideoTracks()
   const videoElement = document.createElement('video');
   videoElement.setAttribute('autoplay', true);
   videoElement.setAttribute('style',
@@ -49,7 +49,7 @@ function Blur (mediaStream, width, height, frameRate, canvasElement) {
   const supportsFrameCallback = !!videoElement.requestVideoFrameCallback;
 
   function getOutputStream () {
-    // return outputStream;
+    return outputStream;
   }
 
   function toggleBlur () {
@@ -77,7 +77,7 @@ function Blur (mediaStream, width, height, frameRate, canvasElement) {
     if (!shouldBlur) {
       return;
     }
-    selfieSegmentation.send({ image: videoElement });
+    await selfieSegmentation.send({ image: videoElement });
     if (supportsFrameCallback) {
       videoElement.requestVideoFrameCallback(blur);
     } else if (!intervalId) {
