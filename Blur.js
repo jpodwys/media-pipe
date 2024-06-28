@@ -77,7 +77,7 @@ function Blur (mediaStream, width, height, frameRate) {
     if (!shouldBlur) {
       return;
     }
-    await selfieSegmentation.send({ image: videoElement });
+    selfieSegmentation.send({ image: videoElement });
     if (supportsFrameCallback) {
       videoElement.requestVideoFrameCallback(blur);
     } else if (!intervalId) {
