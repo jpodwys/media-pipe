@@ -10,6 +10,7 @@
   <div class="container">
     <video class="input_video"></video>
     <canvas class="output_canvas" width="640px" height="480px"></canvas>
+    <video id="outputVideo" autoplay></video>
   </div>
 </body>
 
@@ -17,7 +18,9 @@
   const videoElement = document.getElementsByClassName('input_video')[0];
   const canvasElement = document.getElementsByClassName('output_canvas')[0];
   const canvasCtx = canvasElement.getContext('2d');
-  const stream = canvasElement.captureStream();
+  const output = document.getElementById('outputVideo');
+  const stream = canvasElement.captureStream(24);
+  setTimeout(() => output.srcObject = stream, 2000);
 
   function onResults(results) {
     // Save the context's blank state
