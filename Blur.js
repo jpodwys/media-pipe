@@ -15,11 +15,23 @@
  * This means that when blur is disabled, this file completely stops segmenting and drawing to the canvas.
  * It also means that users of this file can consume a single MediaStream they can publish.
  */
+
+const hiddenStyles = `
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  opacity: .1;
+`;
+
 function Blur (mediaStream, width, height, frameRate) {
   let shouldBlur = true;
   let blurAmount = 10;
   let intervalId;
   const canvasElement = document.createElement('canvas');
+  canvasElement.setAttribute('style', hiddenStyles);
+  document.body.appendChild(canvasElement);
   canvasElement.width = width;
   canvasElement.height = height;
   const canvasCtx = canvasElement.getContext('2d');
@@ -35,16 +47,7 @@ function Blur (mediaStream, width, height, frameRate) {
   const [ outputTrack ] = outputStream.getVideoTracks()
   const videoElement = document.createElement('video');
   videoElement.setAttribute('autoplay', true);
-  videoElement.setAttribute('style',
-    `
-      width: 1px;
-      height: 1px;
-      position: absolute;
-      bottom: 5px;
-      left: 5px;
-      opacity: .1;
-    `
-  );
+  videoElement.setAttribute('style', hiddenStyles);
   videoElement.addEventListener('play', blur);
   videoElement.srcObject = mediaStream;
   document.body.appendChild(videoElement);
