@@ -125,13 +125,11 @@ function Blur (mediaStream, width, height, frameRate) {
         if (totalFrames) {
           const now = Date.now();
           const elapsed = (now - startTime) / 1000;
-          fpsDisplay.innerText = `FPS: ${totalFrames / elapsed}`;
+          fpsDisplay.innerText = `FPS: ${Math.trunc(totalFrames / elapsed)}`;
+          startTime = Date.now()
+          totalFrames = 0;
         }
       }, 500);
-      setInterval(() => {
-        totalFrames = 1;
-        startTime = Date.now();
-      }, 4000);
     }
     totalFrames++;
     // const now = Date.now();
