@@ -61,6 +61,7 @@ function Blur (mediaStream, width, height, frameRate) {
   const [ outputTrack ] = outputStream.getVideoTracks()
   const videoElement = document.createElement('video');
   videoElement.setAttribute('autoplay', true);
+  videoElement.setAttribute('playsinline', true);
   videoElement.setAttribute('style', hiddenStyles);
   videoElement.addEventListener('play', blur);
   videoElement.srcObject = mediaStream;
