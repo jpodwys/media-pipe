@@ -2,55 +2,68 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
-  <script src="./Blur.js"></script>
   <style>
-    .container {
-      width: 1280px;
-      margin: auto;
-    }
-    video {
-      transform: scaleX(-1);
+    body {
+      margin: 0;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <div>
-      <button id="toggle">Toggle Blur</button>
-      <input type="range" id="blurAmount" min="5" max="20" value="10" />
-      <label form="blurAmount">Blur Amount</label>
-      <button id="throttle">Throttle Segmentation</button>
-    </div>
-    <video id="videoOutput" autoplay playsinline></video>
-    <div id="fps"></div>
+    <canvas class="output_canvas" width="1280px" height="720px"></canvas>
   </div>
 </body>
 
 <script type="module">
-  const WIDTH = 1280;
-  const HEIGHT = 720;
-  const toggleButton = document.getElementById('toggle');
-  const blurSlider = document.getElementById('blurAmount');
-  const throttleButton = document.getElementById('throttle');
-  const videoOutput = document.getElementById('videoOutput');
-  const constraints = {
-    video: {
-      width: WIDTH,
-      height: HEIGHT,
-      frameRate: 24,
-    },
-  };
+  const videoElement = document.createElement('video');
+  const canvasElement = document.getElementsByClassName('output_canvas')[0];
+  const canvasCtx = canvasElement.getContext('2d');
+  const stream = canvasElement.captureStream(24);
 
-  const stream = await navigator.mediaDevices.getUserMedia(constraints);
-  const blur = new Blur(stream, WIDTH, HEIGHT, 24);
-  videoOutput.srcObject = blur.getOutputStream();
+  function onResults(results) {
+    // Save the context's blank state
+    canvasCtx.save();
 
-  toggleButton.addEventListener('click', blur.toggleBlur);
-  blurSlider.addEventListener('input', (event) => {
-    blur.setBlurAmount(event.target.value);
+    // Draw the raw image
+    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+    // Make the foreground (all pixels in the segmentation mask) transparent
+    canvasCtx.globalCompositeOperation = 'destination-out';
+    canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
+
+    // With the foreground removed, blur and redraw the background
+    canvasCtx.filter = 'blur(10px)';
+    canvasCtx.globalCompositeOperation = 'source-over';
+    canvasCtx.drawImage(canvasElement, 0, 0);
+
+    // Draw raw image again behind blurred background
+    // The foreground will be visible throught the transparent cutout
+    canvasCtx.filter = 'blur(0px)';
+    canvasCtx.globalCompositeOperation = 'destination-over';
+    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+    // Restore the context's blank state
+    canvasCtx.restore();
+  }
+
+  const selfieSegmentation = new SelfieSegmentation({locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+  }});
+  selfieSegmentation.setOptions({
+    modelSelection: 1,
   });
-  throttleButton.addEventListener('click', blur.toggleThrottle);
+  selfieSegmentation.onResults(onResults);
+
+  const camera = new Camera(videoElement, {
+    onFrame: async () => {
+      await selfieSegmentation.send({image: videoElement});
+    },
+    width: 1280,
+    height: 720
+  });
+  camera.start();
   </script>
 </html>

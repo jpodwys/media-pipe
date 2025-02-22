@@ -147,22 +147,23 @@ function Blur (mediaStream, width, height, frameRate) {
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
     if (shouldBlur) {
-      // Make all pixels not in the segmentation mask transparent
-      canvasCtx.globalCompositeOperation = 'destination-atop';
+      // Draw the shrunken background over the raw frame
+      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height, 15, 10, canvasElement.width - 30, canvasElement.height - 10);
+
+      // Make the foreground (all pixels in the segmentation mask) transparent
+      canvasCtx.globalCompositeOperation = 'destination-out';
       canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
 
-      // Set the raw image as the background but squish it a little to hide the halo effect behind
-      // the foreground layer. This creates a nearly-perfect edge while the subject is centered.
-      // Because I shrunk the background image, I fill in the left, right, and top borders with
-      // duplicate, overlapping pixels. Overlapping blends the edges nicely.
+      // With the foreground removed, blur and redraw the background
       canvasCtx.filter = `blur(${blurAmount}px)`;
-      canvasCtx.globalCompositeOperation = 'destination-over';
-      canvasCtx.drawImage(results.image, 0, 0, 30, canvasElement.height, 0, 0, 30, canvasElement.height);
-      canvasCtx.drawImage(results.image, canvasElement.width - 30, 0, canvasElement.width, canvasElement.height, canvasElement.width - 30, 0, canvasElement.width, canvasElement.height);
-      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, 30, 0, 0, canvasElement.width, 30);
+      canvasCtx.globalCompositeOperation = 'source-over';
+      canvasCtx.drawImage(canvasElement, 0, 0);
 
-      // Draw the shrunken background
-      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height, 15, 10, canvasElement.width - 30, canvasElement.height - 10);
+      // Draw raw image again behind blurred background
+      // The foreground will be visible throught the transparent cutout
+      canvasCtx.filter = 'blur(0px)';
+      canvasCtx.globalCompositeOperation = 'destination-over';
+      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
     }
 
     // Restore the context's blank state
