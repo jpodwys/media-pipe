@@ -24,7 +24,6 @@
   const stream = canvasElement.captureStream(24);
 
   function onResults(results) {
-    // Save the context's blank state
     canvasCtx.save();
 
     // Draw the raw image
@@ -39,13 +38,12 @@
     canvasCtx.globalCompositeOperation = 'source-over';
     canvasCtx.drawImage(canvasElement, 0, 0);
 
-    // Draw raw image again behind blurred background
-    // The foreground will be visible throught the transparent cutout
+    // Draw the raw image again behind the blurred background
+    // The foreground will be visible through the transparent cutout
     canvasCtx.filter = 'blur(0px)';
     canvasCtx.globalCompositeOperation = 'destination-over';
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-    // Restore the context's blank state
     canvasCtx.restore();
   }
 
